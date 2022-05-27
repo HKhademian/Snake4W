@@ -3,6 +3,8 @@
 ![ScreenShot](./docs/screenshot.png)
 \
 This is a simple snake game written in AssemblyScript for the [WASM-4](https://wasm4.org) fantasy console.
+\
+[Play Online](https://hub.hkhademian.ir/Snake4W/playable.html)
 
 ## Building
 
