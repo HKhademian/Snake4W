@@ -128,7 +128,18 @@ function restart(): void {
 }
 
 function gameOver(): void {
-	w4.tone(250 | (523 << 16), 20 | (20 << 8) | (10 << 24), 30, w4.TONE_PULSE1);
+	w4.tone(
+		(75 << 0) |  // freq1
+		(100 << 16), // freq2
+		(50 << 0) |  // freq_sustain
+		(64 << 8) |  // release
+		(32 << 16) | // decay
+		(20 << 24),  // attack
+		(75 << 0) |  // volume_sustain
+		(50 << 8),    // volume_peak
+		w4.TONE_MODE4 |
+		w4.TONE_NOISE
+	);
 	
 	topScore = u16(Math.max(topScore, snake.parts.length));
 	store<u16>(TopScorePTR, topScore);
