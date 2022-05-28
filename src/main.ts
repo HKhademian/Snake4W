@@ -97,6 +97,12 @@ let tick = 0;
 let speed = 40;
 let last_button:u8=0;
 let topScore: u16=0;
+let score: u16=0;
+
+function fixed(l:i32, x:string): string {
+	while(x.length<l) x='0'+x;
+	return x;
+}
 
 function randomPoint(): Point {
 	return new Point(
@@ -114,7 +120,9 @@ function restart(): void {
 	w4.diskr(TopScorePTR, sizeof<u16>());
 	topScore = load<u16>(TopScorePTR);
 
+	score = 0;
 	speed = 40;
+	pause = true;
 
 	snake.parts = [];
 	snake.dir = DIR_NONE;
@@ -123,8 +131,6 @@ function restart(): void {
 	}
 
 	randomApple();
-
-	pause = true;
 }
 
 function gameOver(): void {
@@ -141,7 +147,7 @@ function gameOver(): void {
 		w4.TONE_NOISE
 	);
 	
-	topScore = u16(Math.max(topScore, snake.parts.length));
+	topScore = u16(Math.max(topScore, score));
 	store<u16>(TopScorePTR, topScore);
 	w4.diskw(TopScorePTR, sizeof<u16>());
 
@@ -154,14 +160,18 @@ function paint(): void {
 		store<u16>(w4.DRAW_COLORS, 2+(i+j)%2),
 		w4.rect(i*BG_TILE_SIZE-BG_TILE_SIZE/2, j*BG_TILE_SIZE-BG_TILE_SIZE/2, BG_TILE_SIZE, BG_TILE_SIZE);
 
-	let score = snake.parts.length;
 	write(
-		"Speed:" + speed.toString() +
+		"Spd: " + fixed(3, speed.toString()) +
 		"  " +
-		"Top:" + u16(Math.max(score, topScore)).toString() +
-		"\n" +
-		"Score:" + score.toString()
-		, 6, 6 , 4 , 1);
+		"Len: " + fixed(3, snake.parts.length.toString()) +
+		"",
+		3, 3 , 4 , 1);
+	write(
+		"Top:" + fixed(4, u16(Math.max(score, topScore)).toString()) +
+		"  " +
+		"Scr:" + fixed(4,score.toString()) +
+		"",
+		3, 150, 1, 4);
 	
 	if(snake.dir.x!=0 || snake.dir.y!=0)
 		apple.draw(0,4,1,2);
@@ -177,9 +187,10 @@ export function start(): void {
 
 export function update (): void {
 	Math.random(); // randomize (with help of user events)
-	
-	speed = i32(Math.min(FPS*0.9, 40 + Math.log(snake.parts.length)));
-	tick = ((tick-1%(60-speed))+(60-speed))%(60-speed);
+	speed = i32(Math.ceil(Math.log(snake.parts.length)));
+	let rspeed = 60-i32(Math.min(FPS*0.9, 40 + speed));
+	tick = ((tick-1%rspeed)+rspeed)%rspeed;
+
 	paint();
 	
 	const head = snake.parts[0];
@@ -224,6 +235,7 @@ export function update (): void {
 	);
 	
 	if(snake.hasCollided(apple)) {
+		score += u16(speed);
 		w4.tone(262, 5, 50, w4.TONE_PULSE1 | w4.TONE_MODE3);
 		randomApple();
 	} else {
